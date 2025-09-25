@@ -8,7 +8,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 22)
+@Config(sdk = 33, application = TestApplication.class)
 public abstract class BaseUnitTest {
 
     public static Date getDate(int year, int month, int date) {

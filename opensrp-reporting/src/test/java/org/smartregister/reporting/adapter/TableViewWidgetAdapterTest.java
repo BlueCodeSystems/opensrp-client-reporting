@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.powermock.reflect.Whitebox;
 import org.robolectric.RuntimeEnvironment;
 import org.smartregister.reporting.BaseUnitTest;
 import org.smartregister.reporting.R;
@@ -65,7 +64,7 @@ public class TableViewWidgetAdapterTest extends BaseUnitTest {
 
         TableViewWidgetAdapter.ViewHolder viewHolder = new TableViewWidgetAdapter.ViewHolder(mView);
 
-        TextView textView = Whitebox.getInternalState(viewHolder, "textView");
+        TextView textView = mView.findViewById(R.id.cellTextView);
         Assert.assertNotNull(textView);
 
         Assert.assertEquals("", textView.getText());
@@ -98,7 +97,7 @@ public class TableViewWidgetAdapterTest extends BaseUnitTest {
 
         TableViewWidgetAdapter.ViewHolder viewHolder = new TableViewWidgetAdapter.ViewHolder(mView);
 
-        TextView textView = Whitebox.getInternalState(viewHolder, "textView");
+        TextView textView = mView.findViewById(R.id.cellTextView);
         Assert.assertNotNull(textView);
 
         Assert.assertEquals("", textView.getText());

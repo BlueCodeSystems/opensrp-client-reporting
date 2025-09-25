@@ -7,7 +7,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.smartregister.reporting.TestTimber;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,12 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 33, application = org.smartregister.reporting.TestApplication.class)
 public class PieChartIndicatorVisualizationTest {
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        TestTimber.plant();
     }
 
     @Test

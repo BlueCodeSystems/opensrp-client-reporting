@@ -12,13 +12,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.reflect.Whitebox;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.Context;
 import org.smartregister.CoreLibrary;
 import org.smartregister.commonregistry.CommonFtsObject;
 import org.smartregister.reporting.ReportingLibrary;
+import org.smartregister.reporting.TestTimber;
 import org.smartregister.reporting.domain.CompositeIndicatorTally;
 import org.smartregister.reporting.domain.IndicatorQuery;
 import org.smartregister.reporting.domain.ReportIndicator;
@@ -44,7 +45,8 @@ import java.util.Set;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 2019-08-14
  */
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 33, application = org.smartregister.reporting.TestApplication.class)
 public class ReportIndicatorDaoImplTest {
     @Mock
     private ReportIndicator reportIndicator;
@@ -76,6 +78,7 @@ public class ReportIndicatorDaoImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        TestTimber.plant();
         reportIndicatorDao = new ReportIndicatorDaoImpl(indicatorQueryRepository, dailyIndicatorCountRepository, indicatorRepository);
         ReflectionHelpers.setStaticField(CoreLibrary.class, "instance", coreLibrary);
 
@@ -142,7 +145,7 @@ public class ReportIndicatorDaoImplTest {
         Mockito.doReturn(allSharedPreferences).when(context).allSharedPreferences();
 
 
-        Whitebox.setInternalState(reportIndicatorDao, "reportingLibrary", reportingLibrary);
+        reportIndicatorDao.setReportingLibrary(reportingLibrary);
 
         LinkedHashMap<String, Date> dates = new LinkedHashMap<>();
         dates.put("2018-01-01", new Date());
@@ -193,11 +196,14 @@ public class ReportIndicatorDaoImplTest {
         matrixCursor.addRow(new Object[]{67F});
         Mockito.doReturn(matrixCursor).when(database).rawQuery(Mockito.anyString(), Mockito.isNull(String[].class));
 
-        ReportingLibrary.init(context,repository,commonFtsObject,0,0);
         Mockito.when(context.allSharedPreferences()).thenReturn(allSharedPreferences);
         Mockito.when(allSharedPreferences.fetchPioneerUser()).thenReturn("testUser");
         Mockito.when(allSharedPreferences.fetchDefaultLocalityId(Mockito.anyString())).thenReturn("testLoc");
 
+        ReportingLibrary reportingLibraryMock = Mockito.mock(ReportingLibrary.class);
+        Mockito.when(reportingLibraryMock.getRepository()).thenReturn(repository);
+        Mockito.when(reportingLibraryMock.getContext()).thenReturn(context);
+        reportIndicatorDao.setReportingLibrary(reportingLibraryMock);
         IndicatorQuery query = new IndicatorQuery();
         query.setMultiResult(false);
         query.setIndicatorCode("1234");

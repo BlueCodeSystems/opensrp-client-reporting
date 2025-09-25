@@ -1,84 +1,58 @@
 package org.smartregister.reporting.view;
 
 import android.content.Context;
-import android.view.LayoutInflater;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.smartregister.reporting.BaseUnitTest;
 import org.smartregister.reporting.R;
-import org.smartregister.reporting.domain.PieChartIndicatorData;
 import org.smartregister.reporting.domain.PieChartIndicatorVisualization;
+import org.smartregister.reporting.domain.PieChartSlice;
 import org.smartregister.reporting.factory.PieChartFactory;
+import org.smartregister.reporting.listener.PieChartSelectListener;
+
+import java.util.Arrays;
 
 import lecho.lib.hellocharts.view.PieChartView;
 
-@PrepareForTest(LayoutInflater.class)
 public class PieChartFactoryTest extends BaseUnitTest {
 
-    @Rule
-    public PowerMockRule rule = new PowerMockRule();
-
-    @Mock
-    private PieChartIndicatorVisualization visualization;
-
-    @Mock
-    private Context context;
-
-    @Mock
-    private TextView chartLabelTextView;
-
-    @Mock
-    private TextView chartNoteTextView;
-
-    @Mock
-    private TextView numericValueTextView;
-
-    @Mock
-    private PieChartView pieChartView;
-
-    @Mock
-    private LayoutInflater layoutInflater;
-
-    @Mock
-    private LinearLayout rootLayout;
-
-    @Mock
-    private PieChartIndicatorData chartConfiguration;
-
-    @InjectMocks
-    private PieChartFactory pieChartFactory;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
+    private final Context context = ApplicationProvider.getApplicationContext();
+    private final PieChartFactory pieChartFactory = new PieChartFactory();
 
     @Test
     public void getPieChartIndicatorViewReturnsCorrectView() {
-        PieChartFactory pieChartFactorySpy = Mockito.spy(pieChartFactory);
-        PowerMockito.mockStatic(LayoutInflater.class);
-        PowerMockito.when(LayoutInflater.from(context)).thenReturn(layoutInflater);
-        Mockito.doReturn(rootLayout).when(layoutInflater).inflate(R.layout.pie_chart_view, null);
-        Mockito.doReturn(chartLabelTextView).when(rootLayout).findViewById(R.id.pie_indicator_label);
-        Mockito.doReturn(chartNoteTextView).when(rootLayout).findViewById(R.id.pie_note_label);
-        Mockito.doReturn(numericValueTextView).when(rootLayout).findViewById(R.id.numeric_indicator_value);
-        Mockito.doReturn(pieChartView).when(rootLayout).findViewById(R.id.pie_chart);
-        Mockito.doReturn(chartConfiguration).when(visualization).getChartData();
-        View view = pieChartFactorySpy.getIndicatorView(visualization, context);
+        PieChartSlice first = new PieChartSlice(10f, "First", Color.RED, "first");
+        PieChartSlice second = new PieChartSlice(5f, "Second", Color.BLUE, "second");
+        PieChartSelectListener listener = slice -> { /* no-op */ };
+
+        PieChartIndicatorVisualization visualization = new PieChartIndicatorVisualization.PieChartIndicatorVisualizationBuilder()
+                .indicatorLabel("ANC Coverage")
+                .indicatorNote("FY2025")
+                .chartHasLabels(true)
+                .chartHasLabelsOutside(false)
+                .chartHasCenterCircle(true)
+                .chartSlices(Arrays.asList(first, second))
+                .chartListener(listener)
+                .build();
+
+        View view = pieChartFactory.getIndicatorView(visualization, context);
+
         Assert.assertNotNull(view);
         Assert.assertTrue(view instanceof LinearLayout);
+
+        TextView label = view.findViewById(R.id.pie_indicator_label);
+        TextView note = view.findViewById(R.id.pie_note_label);
+        PieChartView pieChartView = view.findViewById(R.id.pie_chart);
+
+        Assert.assertEquals("ANC Coverage", label.getText().toString());
+        Assert.assertEquals("FY2025", note.getText().toString());
+        Assert.assertEquals(View.VISIBLE, pieChartView.getVisibility());
     }
 }

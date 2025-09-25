@@ -1,71 +1,39 @@
 package org.smartregister.reporting.view;
 
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.smartregister.reporting.BaseUnitTest;
 import org.smartregister.reporting.R;
 import org.smartregister.reporting.domain.NumericIndicatorVisualization;
 import org.smartregister.reporting.factory.NumericDisplayFactory;
 
-@PrepareForTest(LayoutInflater.class)
 public class NumericDisplayFactoryTest extends BaseUnitTest {
 
-    @Rule
-    public PowerMockRule rule = new PowerMockRule();
-
-    @Mock
-    private NumericIndicatorVisualization visualization;
-
-    @Mock
-    private Context context;
-
-    @Mock
-    private ConstraintLayout rootLayout;
-
-    @Mock
-    private LayoutInflater layoutInflater;
-
-    @Mock
-    private TextView chartLabelTextView;
-
-    @Mock
-    private TextView chartValueTextView;
-
-    @InjectMocks
-    private NumericDisplayFactory numericDisplayFactory;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
+    private final Context context = ApplicationProvider.getApplicationContext();
+    private final NumericDisplayFactory numericDisplayFactory = new NumericDisplayFactory();
 
     @Test
     public void getNumericDisplayIndicatorViewReturnsCorrectView() {
-        NumericDisplayFactory numericDisplayFactorySpy = Mockito.spy(numericDisplayFactory);
-        PowerMockito.mockStatic(LayoutInflater.class);
-        PowerMockito.when(LayoutInflater.from(context)).thenReturn(layoutInflater);
-        Mockito.doReturn(rootLayout).when(layoutInflater).inflate(R.layout.numeric_indicator_view, null);
-        Mockito.doReturn(chartLabelTextView).when(rootLayout).findViewById(R.id.numeric_indicator_label);
-        Mockito.doReturn(chartValueTextView).when(rootLayout).findViewById(R.id.numeric_indicator_value);
-        View view = numericDisplayFactorySpy.getIndicatorView(visualization, context);
-        Assert.assertNotNull(view);
-        Assert.assertTrue(view instanceof ConstraintLayout);
-    }
+        NumericIndicatorVisualization visualization = new NumericIndicatorVisualization();
+        visualization.setIndicatorLabel("ANC Visits");
+        visualization.setValue(12.5f);
 
+        View view = numericDisplayFactory.getIndicatorView(visualization, context);
+
+        Assert.assertNotNull(view);
+        Assert.assertTrue(view instanceof RelativeLayout);
+
+        TextView label = view.findViewById(R.id.numeric_indicator_label);
+        TextView value = view.findViewById(R.id.numeric_indicator_value);
+
+        Assert.assertEquals("ANC Visits", label.getText().toString());
+        Assert.assertEquals("12.5", value.getText().toString());
+    }
 }

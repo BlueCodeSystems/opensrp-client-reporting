@@ -29,7 +29,7 @@ public class ProgressIndicatorViewTest extends BaseUnitTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         attributeSet = Robolectric.buildAttributeSet()
-                .addAttribute(R.attr.subtitle, "subtitle")
+                .addAttribute(android.R.attr.subtitle, "subtitle")
                 .build();
     }
 
@@ -91,14 +91,14 @@ public class ProgressIndicatorViewTest extends BaseUnitTest {
         view.setTitle("New Test Title");
         view.setSubTitle("New Sub Title");
         view.setProgress(35);
-        view.setProgressDrawable(R.drawable.login_background);
+        view.setProgressDrawable(R.drawable.progress_indicator_bg);
         view.setProgressBarForegroundColor(RuntimeEnvironment.application.getResources().getColor(R.color.colorAccent));
         view.setProgressBarBackgroundColor(RuntimeEnvironment.application.getResources().getColor(R.color.colorPrimaryDark));
 
         Assert.assertEquals("New Test Title", view.getTitle());
         Assert.assertEquals("New Sub Title", view.getSubTitle());
         Assert.assertEquals(35, view.getProgress());
-        Assert.assertEquals(R.drawable.login_background, view.getProgressDrawable());
+        Assert.assertEquals(R.drawable.progress_indicator_bg, view.getProgressDrawable());
         Assert.assertEquals(RuntimeEnvironment.application.getResources().getColor(R.color.colorPrimaryDark), view.getProgressBarBackgroundColor());
         Assert.assertEquals(RuntimeEnvironment.application.getResources().getColor(R.color.colorAccent), view.getProgressBarForegroundColor());
 
@@ -127,7 +127,7 @@ public class ProgressIndicatorViewTest extends BaseUnitTest {
         view.setTitle(null);
         view.setSubTitle(null);
         view.setProgress(0);
-        view.setProgressDrawable(R.drawable.bottom_bar_initials_background);//set any random bg
+        view.setProgressDrawable(R.drawable.progress_indicator_bg);//set any random bg
         view.setProgressBarForegroundColor(1);
         view.setProgressBarBackgroundColor(1);
 

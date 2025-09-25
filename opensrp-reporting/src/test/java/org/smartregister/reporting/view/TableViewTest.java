@@ -17,7 +17,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.smartregister.reporting.BaseUnitTest;
 import org.smartregister.reporting.R;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
+import java.util.Arrays;
 
 /**
  * Created by ndegwamartin on 2019-10-30.
@@ -31,7 +31,7 @@ public class TableViewTest extends BaseUnitTest {
         MockitoAnnotations.initMocks(this);
         MockitoAnnotations.initMocks(this);
         attributeSet = Robolectric.buildAttributeSet()
-                .addAttribute(R.attr.subtitle, "subtitle")
+                .addAttribute(android.R.attr.subtitle, "subtitle")
                 .build();
     }
 

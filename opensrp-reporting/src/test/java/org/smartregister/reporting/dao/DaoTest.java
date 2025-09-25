@@ -2,6 +2,7 @@ package org.smartregister.reporting.dao;
 
 import net.sqlcipher.database.SQLiteDatabase;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,12 +12,12 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.smartregister.Context;
 import org.smartregister.CoreLibrary;
 import org.smartregister.reporting.ReportingLibrary;
+import org.smartregister.reporting.TestTimber;
 import org.smartregister.reporting.domain.IndicatorQuery;
 import org.smartregister.reporting.domain.ReportIndicator;
 import org.smartregister.reporting.repository.DailyIndicatorCountRepository;
@@ -26,6 +27,7 @@ import org.smartregister.reporting.util.Constants;
 import org.smartregister.repository.AllSharedPreferences;
 import org.smartregister.repository.Repository;
 import org.smartregister.util.AppProperties;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,8 +36,8 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ReportingLibrary.class, ReportIndicatorDaoImpl.class, CoreLibrary.class})
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 33, application = org.smartregister.reporting.TestApplication.class)
 public class DaoTest {
 
     @Mock
@@ -73,10 +75,17 @@ public class DaoTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        daoSpy = PowerMockito.spy(new ReportIndicatorDaoImpl());
+        TestTimber.plant();
+        daoSpy = Mockito.spy(new ReportIndicatorDaoImpl());
         daoSpy.setIndicatorRepository(indicatorRepository);
         daoSpy.setIndicatorQueryRepository(indicatorQueryRepository);
         daoSpy.setDailyIndicatorCountRepository(dailyIndicatorCountRepository);
+    }
+
+    @After
+    public void tearDown() {
+        ReflectionHelpers.setStaticField(CoreLibrary.class, "instance", null);
+        ReflectionHelpers.setStaticField(ReportingLibrary.class, "instance", null);
     }
 
     @Test
@@ -110,20 +119,17 @@ public class DaoTest {
         Map<String, IndicatorQuery> indicatorQueries = new HashMap<>();
         indicatorQueries.put("INDI-100", new IndicatorQuery(1L, "INDI-100", "select count(*) from table", 4, false, null));
 
-        PowerMockito.mockStatic(ReportingLibrary.class);
+        ReflectionHelpers.setStaticField(CoreLibrary.class, "instance", coreLibrary);
+        ReflectionHelpers.setStaticField(ReportingLibrary.class, "instance", reportingLibrary);
+        Mockito.when(coreLibrary.context()).thenReturn(context);
+        Mockito.when(context.getAppProperties()).thenReturn(appProperties);
+        Mockito.when(appProperties.hasProperty(Constants.ReportingConfig.SHOULD_ALLOW_ZERO_TALLIES)).thenReturn(true);
+        Mockito.when(appProperties.getPropertyBoolean(Constants.ReportingConfig.SHOULD_ALLOW_ZERO_TALLIES)).thenReturn(true);
 
-        PowerMockito.mockStatic(CoreLibrary.class);
-        PowerMockito.when(CoreLibrary.getInstance()).thenReturn(coreLibrary);
-        PowerMockito.when(coreLibrary.context()).thenReturn(context);
-        PowerMockito.when(context.getAppProperties()).thenReturn(appProperties);
-        PowerMockito.when(appProperties.hasProperty(Constants.ReportingConfig.SHOULD_ALLOW_ZERO_TALLIES)).thenReturn(true);
-        PowerMockito.when(appProperties.getPropertyBoolean(Constants.ReportingConfig.SHOULD_ALLOW_ZERO_TALLIES)).thenReturn(true);
-
-        PowerMockito.when(ReportingLibrary.getInstance()).thenReturn(reportingLibrary);
         Mockito.when(reportingLibrary.getRepository()).thenReturn(repository);
         Mockito.when(reportingLibrary.getContext()).thenReturn(context);
         Mockito.when(repository.getWritableDatabase()).thenReturn(sqLiteDatabase);
-        PowerMockito.doReturn(reportEventDates).when(daoSpy, "getReportEventDates", ArgumentMatchers.any(Date.class), ArgumentMatchers.anyString(), ArgumentMatchers.any(SQLiteDatabase.class));
+        Mockito.doReturn(reportEventDates).when(daoSpy).getReportEventDates(ArgumentMatchers.any(Date.class), ArgumentMatchers.anyString(), ArgumentMatchers.any(SQLiteDatabase.class));
         Mockito.when(indicatorQueryRepository.getAllIndicatorQueries()).thenReturn(indicatorQueries);
         Mockito.when(context.allSharedPreferences()).thenReturn(sharedPreferences);
 

@@ -6,16 +6,22 @@ import net.sqlcipher.database.SQLiteDatabase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.smartregister.reporting.TestApplication;
+import org.smartregister.reporting.TestTimber;
 import org.smartregister.reporting.domain.ReportIndicator;
 import org.smartregister.repository.Repository;
 import org.smartregister.view.activity.DrishtiApplication;
 
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 33, application = org.smartregister.reporting.TestApplication.class)
 public class IndicatorRepositoryTest {
     @Mock
     private Repository repository;
@@ -29,6 +35,7 @@ public class IndicatorRepositoryTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        TestTimber.plant();
 
         Mockito.when(application.getRepository()).thenReturn(repository);
         TestApplication.setInstance(application);

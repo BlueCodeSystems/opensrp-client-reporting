@@ -10,7 +10,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.smartregister.reporting.TestTimber;
 
 import java.util.ArrayList;
 
@@ -19,7 +21,8 @@ import java.util.ArrayList;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 2019-08-15
  */
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 33, application = org.smartregister.reporting.TestApplication.class)
 public class UtilsTest {
 
     @Mock
@@ -28,6 +31,7 @@ public class UtilsTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        TestTimber.plant();
     }
 
     @Test

@@ -8,4 +8,13 @@
     <color name="indicatorSplitLine">#DEDEDE</color>
     <color name="colorSecondaryGreen">#00b253</color>
     <color name="colorPastelGreen">#b2f395</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="dark_grey">#FF444444</color>
+    <color name="dark_grey_text">#FF333333</color>
+    <color name="text_blue">#FF1E88E5</color>
+    <color name="pnc_circle_yellow">#FFF4B400</color>
+    <color name="alert_complete_green">#FF2E7D32</color>
 </resources>
+
+
+

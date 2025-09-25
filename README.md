@@ -1,3 +1,8 @@
+<!-- JITPACK BADGES:START -->
+[![JitPack Latest](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting)
+[![master-SNAPSHOT](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT)
+<!-- JITPACK BADGES:END -->
+
 # opensrp-client-reporting
 
 OpenSRP Client Reporting Library

@@ -20,6 +20,7 @@ import org.smartregister.reporting.util.Constants;
 import org.smartregister.reporting.util.ReportingUtil;
 import org.smartregister.repository.EventClientRepository;
 import org.smartregister.repository.Repository;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -266,7 +267,8 @@ public class ReportingLibrary {
     }
 
     private void initYamlIndicatorConfig() {
-        Constructor constructor = new Constructor(IndicatorsYamlConfig.class);
+        LoaderOptions loaderOptions = new LoaderOptions();
+        Constructor constructor = new Constructor(IndicatorsYamlConfig.class, loaderOptions);
         TypeDescription typeDescription = new TypeDescription(IndicatorsYamlConfig.class);
         typeDescription.addPropertyParameters(IndicatorYamlConfigItem.INDICATOR_PROPERTY, IndicatorYamlConfigItem.class);
         constructor.addTypeDescription(typeDescription);

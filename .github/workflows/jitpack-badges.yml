@@ -1,0 +1,152 @@
+name: Maintain JitPack badges
+
+on:
+  push:
+    branches: ["master"]
+    tags: ["**"]
+  workflow_dispatch: {}
+
+jobs:
+  update-badges:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute values
+        id: vars
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS='/' read -r OWNER REPO <<<"${GITHUB_REPOSITORY}"
+          git fetch --tags --force --prune 2>/dev/null || true
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          echo "owner=$OWNER" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve branch to push
+        id: branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE:-}" == "branch" && -n "${GITHUB_REF_NAME:-}" ]]; then
+            BR="$GITHUB_REF_NAME"
+          else
+            BR=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p' || true)
+            if [ -z "$BR" ]; then BR="master"; fi
+          fi
+          echo "branch=$BR" >> "$GITHUB_OUTPUT"
+
+      - name: Switch to target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          BR='${{ steps.branch.outputs.branch }}'
+          echo "Switching to branch: $BR"
+          git fetch origin "$BR" --depth=1 || true
+          if git show-ref --verify --quiet "refs/remotes/origin/$BR"; then
+            git checkout -B "$BR" "origin/$BR"
+          else
+            git checkout -B "$BR"
+          fi
+
+      - name: Update README badges
+        shell: bash
+        env:
+          OWNER: ${{ steps.vars.outputs.owner }}
+          REPO: ${{ steps.vars.outputs.repo }}
+          LATEST_TAG: ${{ steps.vars.outputs.latest_tag }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+
+owner = os.environ['OWNER']
+repo = os.environ['REPO']
+latest_tag = os.environ.get('LATEST_TAG', '').strip()
+block_start = "<!-- JITPACK BADGES:START -->"
+block_end = "<!-- JITPACK BADGES:END -->"
+lines = [
+    block_start,
+    f"[![JitPack Latest](https://jitpack.io/v/{owner}/{repo}.svg)](https://jitpack.io/#{owner}/{repo})"
+]
+if latest_tag:
+    lines.append(f"[![Build for latest tag ({latest_tag})](https://jitpack.io/v/{owner}/{repo}/{latest_tag}.svg)](https://jitpack.io/#{owner}/{repo}/{latest_tag})")
+lines.append(f"[![master-SNAPSHOT](https://jitpack.io/v/{owner}/{repo}/master-SNAPSHOT.svg)](https://jitpack.io/#{owner}/{repo}/master-SNAPSHOT)")
+lines.append(block_end)
+new_block = "\n".join(lines)
+
+candidates = [Path('README.md'), Path('README.MD'), Path('README')]
+for path in candidates:
+    if path.exists():
+        readme_path = path
+        break
+else:
+    readme_path = Path('README.md')
+    readme_path.write_text(f"# {repo}\n\n")
+
+text = readme_path.read_text()
+if block_start in text:
+    pattern = re.compile(rf"{re.escape(block_start)}.*?{re.escape(block_end)}", re.DOTALL)
+    text = pattern.sub(new_block, text)
+else:
+    text = new_block + "\n\n" + text.lstrip('\n')
+
+result_lines = []
+in_block = False
+for line in text.splitlines():
+    if block_start in line:
+        in_block = True
+        result_lines.append(line)
+        continue
+    if block_end in line:
+        in_block = False
+        result_lines.append(line)
+        continue
+    if not in_block and "jitpack.io" in line and "[![" in line:
+        continue
+    result_lines.append(line)
+
+updated = "\n".join(result_lines).rstrip() + "\n"
+readme_path.write_text(updated)
+PY
+
+      - name: Commit changes if any
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(readme): ensure JitPack badges (latest, latest tag, master-SNAPSHOT)"
+          branch: ${{ steps.branch.outputs.branch }}
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          file_pattern: |
+            README*
+
+      - name: Trigger JitPack build (master)
+        if: ${{ steps.branch.outputs.branch == 'master' }}
+        shell: bash
+        env:
+          OWNER: ${{ steps.vars.outputs.owner }}
+          REPO: ${{ steps.vars.outputs.repo }}
+        run: |
+          set -euo pipefail
+          ARTIFACT=""
+          if [ -f gradle.properties ]; then
+            ARTIFACT=$(grep -E '^POM_SETTING_ARTIFACT_ID=' gradle.properties | sed 's/^[^=]*=//') || true
+          fi
+          if [ -z "$ARTIFACT" ]; then
+            ARTIFACT="$REPO"
+          fi
+          URLs=(
+            "https://jitpack.io/com/github/${OWNER}/${REPO}/master-SNAPSHOT/"
+            "https://jitpack.io/com/github/${OWNER}/${REPO}/master-SNAPSHOT/${ARTIFACT}-master-SNAPSHOT.pom"
+            "https://jitpack.io/v/${OWNER}/${REPO}/master-SNAPSHOT.svg"
+          )
+          for url in "${URLs[@]}"; do
+            curl -fsSIL "$url" >/dev/null || true
+          done

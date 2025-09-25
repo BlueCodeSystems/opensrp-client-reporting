@@ -1,3 +1,9 @@
+<!-- JITPACK BADGES:START -->
+[![JitPack Latest](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting)
+[![Build for latest tag (v0.2.0)](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/v0.2.0.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/v0.2.0)
+[![master-SNAPSHOT](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT)
+<!-- JITPACK BADGES:END -->
+
 # opensrp-client-reporting
 OpenSRP client library for producing reporting indicators, visualizations, and widgets that can be embedded in Android dashboards and register flows.
 

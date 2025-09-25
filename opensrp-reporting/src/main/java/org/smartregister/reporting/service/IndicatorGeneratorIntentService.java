@@ -3,6 +3,8 @@ package org.smartregister.reporting.service;
 import android.app.IntentService;
 import android.content.Intent;
 
+import androidx.annotation.VisibleForTesting;
+
 import org.smartregister.reporting.ReportingLibrary;
 import org.smartregister.reporting.dao.ReportIndicatorDaoImpl;
 import org.smartregister.reporting.domain.TallyStatus;
@@ -44,7 +46,7 @@ public class IndicatorGeneratorIntentService extends IntentService {
             IndicatorTallyEvent inProgressTallyEvent = new IndicatorTallyEvent(TallyStatus.INPROGRESS);
             EventBusHelper.postStickyEvent(inProgressTallyEvent);
 
-            reportIndicatorDao.generateDailyIndicatorTallies(lastProcessedDate);
+            getReportIndicatorDao().generateDailyIndicatorTallies(lastProcessedDate);
 
             EventBusHelper.removeStickyEvent(inProgressTallyEvent);
             EventBusHelper.postEvent(new IndicatorTallyEvent(TallyStatus.COMPLETE));
@@ -61,12 +63,30 @@ public class IndicatorGeneratorIntentService extends IntentService {
         return allSharedPreferences;
     }
 
+    @VisibleForTesting
+    void setAllSharedPreferences(AllSharedPreferences allSharedPreferences) {
+        this.allSharedPreferences = allSharedPreferences;
+    }
+
+    private ReportIndicatorDaoImpl getReportIndicatorDao() {
+        if (reportIndicatorDao == null) {
+            DailyIndicatorCountRepository dailyIndicatorCountRepository = ReportingLibrary.getInstance().dailyIndicatorCountRepository();
+            IndicatorQueryRepository indicatorQueryRepository = ReportingLibrary.getInstance().indicatorQueryRepository();
+            IndicatorRepository indicatorRepository = ReportingLibrary.getInstance().indicatorRepository();
+            reportIndicatorDao = new ReportIndicatorDaoImpl(indicatorQueryRepository, dailyIndicatorCountRepository, indicatorRepository);
+            reportIndicatorDao.setReportingLibrary(ReportingLibrary.getInstance());
+        }
+        return reportIndicatorDao;
+    }
+
+    @VisibleForTesting
+    void setReportIndicatorDao(ReportIndicatorDaoImpl reportIndicatorDao) {
+        this.reportIndicatorDao = reportIndicatorDao;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        DailyIndicatorCountRepository dailyIndicatorCountRepository = ReportingLibrary.getInstance().dailyIndicatorCountRepository();
-        IndicatorQueryRepository indicatorQueryRepository = ReportingLibrary.getInstance().indicatorQueryRepository();
-        IndicatorRepository indicatorRepository = ReportingLibrary.getInstance().indicatorRepository();
-        reportIndicatorDao = new ReportIndicatorDaoImpl(indicatorQueryRepository, dailyIndicatorCountRepository, indicatorRepository);
+        getReportIndicatorDao();
         return super.onStartCommand(intent, flags, startId);
     }
 }

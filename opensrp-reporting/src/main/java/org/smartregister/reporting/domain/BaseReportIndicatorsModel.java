@@ -1,5 +1,7 @@
 package org.smartregister.reporting.domain;
 
+import androidx.annotation.VisibleForTesting;
+
 import org.smartregister.reporting.ReportingLibrary;
 import org.smartregister.reporting.contract.ReportContract;
 import org.smartregister.reporting.dao.ReportIndicatorDaoImpl;
@@ -9,8 +11,18 @@ import java.util.Map;
 
 public class BaseReportIndicatorsModel implements ReportContract.Model {
 
-    private ReportingLibrary reportingLibrary = ReportingLibrary.getInstance();
-    private ReportIndicatorDaoImpl dao = new ReportIndicatorDaoImpl();
+    private final ReportingLibrary reportingLibrary;
+    private final ReportIndicatorDaoImpl dao;
+
+    public BaseReportIndicatorsModel() {
+        this(ReportingLibrary.getInstance(), new ReportIndicatorDaoImpl());
+    }
+
+    @VisibleForTesting
+    public BaseReportIndicatorsModel(ReportingLibrary reportingLibrary, ReportIndicatorDaoImpl dao) {
+        this.reportingLibrary = reportingLibrary;
+        this.dao = dao;
+    }
 
     @Override
     public void addIndicator(ReportIndicator indicator) {

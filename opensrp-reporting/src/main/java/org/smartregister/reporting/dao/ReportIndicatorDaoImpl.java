@@ -139,8 +139,9 @@ public class ReportIndicatorDaoImpl implements ReportIndicatorDao {
 
                 String queryString = indicatorQuery.getQuery();
                 String date = dates.getKey();
-                String userName = ReportingLibrary.getInstance().getContext().allSharedPreferences().fetchPioneerUser();
-                String defaultLocID = ReportingLibrary.getInstance().getContext().allSharedPreferences().fetchDefaultLocalityId(userName);
+                ReportingLibrary reportingLibrary = getReportingLibrary();
+                String userName = reportingLibrary.getContext().allSharedPreferences().fetchPioneerUser();
+                String defaultLocID = reportingLibrary.getContext().allSharedPreferences().fetchDefaultLocalityId(userName);
                 if (date != null)
                     queryString = queryString.contains("%s") ? queryString.replaceAll("%s", date) : queryString;
                 if(defaultLocID != null)
@@ -325,5 +326,10 @@ public class ReportIndicatorDaoImpl implements ReportIndicatorDao {
 
     public void setIndicatorRepository(IndicatorRepository indicatorRepository) {
         this.indicatorRepository = indicatorRepository;
+    }
+
+    @VisibleForTesting
+    public void setReportingLibrary(ReportingLibrary reportingLibrary) {
+        this.reportingLibrary = reportingLibrary;
     }
 }

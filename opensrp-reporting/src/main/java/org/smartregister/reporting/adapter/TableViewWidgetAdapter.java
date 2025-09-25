@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -64,10 +65,11 @@ public class TableViewWidgetAdapter extends RecyclerView.Adapter<TableViewWidget
 
             holder.textView.setAllCaps(true);
 
-            TextViewCompat.setTextAppearance(holder.textView, R.style.TextAppearance_AppCompat_Medium);
+            TextViewCompat.setTextAppearance(holder.textView, androidx.appcompat.R.style.TextAppearance_AppCompat_Medium);
             holder.textView.setTypeface(holder.textView.getTypeface(), style.headerTextStyle);
 
-            holder.textView.setTextColor(style.headerTextColor != 0 ? style.headerTextColor : context.getResources().getColor(R.color.white));
+            int headerColor = style.headerTextColor != 0 ? style.headerTextColor : ContextCompat.getColor(context, R.color.white);
+            holder.textView.setTextColor(headerColor);
             holder.textView.setGravity(Gravity.CENTER_VERTICAL);
 
             if (style.headerBackgroundColor != 0) {

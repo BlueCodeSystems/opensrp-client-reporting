@@ -1,1 +1,41 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+pluginManagement {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://cloudant.github.io/cloudant-sync-eap/repository' }
+        maven { url 'https://s3.amazonaws.com/repo.commonsware.com' }
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+}
+
 include ':opensrp-reporting', ':sample'
+
+boolean siblingExists(String path) {
+    return file(path)?.exists()
+}
+
+def useLocalSiblings = (gradle.startParameter.projectProperties['useLocalSiblings']
+        ?: System.getenv('USE_LOCAL_SIBLINGS'))?.toString()?.toBoolean() ?: false
+
+if (useLocalSiblings && siblingExists('../opensrp-client-core')) {
+    includeBuild('../opensrp-client-core') {
+        dependencySubstitution {
+            substitute(module('io.github.bluecodesystems:opensrp-client-core')).using(project(':opensrp-core'))
+        }
+    }
+}

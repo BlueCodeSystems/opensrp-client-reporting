@@ -1,134 +1,141 @@
-apply plugin: 'maven'
+import org.gradle.api.tasks.bundling.Zip
+
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-def sonatypeRepositoryURL
-def mavenLocalFlag = hasProperty('mavenLocal') ? mavenLocal.toBoolean() : true;
-
-if (isReleaseBuild()) {
-    println 'PROCESSING MAVEN ' + (mavenLocalFlag ? 'LOCAL' : 'REMOTE') + ' RELEASE BUILD VERSION ' + project.VERSION_NAME + '...'
-    sonatypeRepositoryURL = hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-} else {
-    println 'PROCESSING MAVEN ' + (mavenLocalFlag ? 'LOCAL' : 'REMOTE') + ' SNAPSHOT BUILD VERSION ' + project.VERSION_NAME + '...'
-    sonatypeRepositoryURL = hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "https://oss.sonatype.org/content/repositories/snapshots/"
-
-}
-
-def getRepositoryPassword() {
-    return hasProperty('sonatypePassword') ? sonatypePassword : ""
+def isReleaseBuild() {
+    return !project.version.toString().contains('SNAPSHOT')
 }
 
 def getRepositoryUsername() {
-    return hasProperty('sonatypeUsername') ? sonatypeUsername : ""
+    return hasProperty('sonatypeUsername') ? sonatypeUsername : ''
 }
 
-afterEvaluate { project ->
-    uploadArchives {
-        repositories {
+def getRepositoryPassword() {
+    return hasProperty('sonatypePassword') ? sonatypePassword : ''
+}
 
-            if (mavenLocalFlag) {
+def isSkipSigning() {
+    return hasProperty('skipSigning') && project.property('skipSigning').toString().toBoolean()
+}
 
-                mavenDeployer {
-
-                    pom.artifactId = POM_SETTING_ARTIFACT_ID
-
-                    repository(url: mavenLocal().url)
-
-                    pom.project {
-                        name POM_SETTING_NAME
-                        packaging POM_SETTING_PACKAGING
-                        description POM_SETTING_DESCRIPTION
-                        url POM_SETTING_URL
-
-                        scm {
-                            url POM_SETTING_SCM_URL
-                            connection POM_SETTING_SCM_CONNECTION
-                            developerConnection POM_SETTING_SCM_DEV_CONNECTION
-                        }
-
-                        licenses {
-                            license {
-                                name POM_SETTING_LICENCE_NAME
-                                url POM_SETTING_LICENCE_URL
-                                distribution POM_SETTING_LICENCE_DIST
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id POM_SETTING_DEVELOPER_ID
-                                name POM_SETTING_DEVELOPER_NAME
-                            }
+afterEvaluate {
+    publishing {
+        publications {
+            create('maven', MavenPublication) {
+                from components.findByName('release')
+                artifactId = project.findProperty('POM_SETTING_ARTIFACT_ID') ?: project.name
+                pom {
+                    name = project.findProperty('POM_SETTING_NAME') ?: project.name
+                    packaging = project.findProperty('POM_SETTING_PACKAGING') ?: 'aar'
+                    description = project.findProperty('POM_SETTING_DESCRIPTION') ?: ''
+                    url = project.findProperty('POM_SETTING_URL') ?: ''
+                    scm {
+                        url = project.findProperty('POM_SETTING_SCM_URL') ?: ''
+                        connection = project.findProperty('POM_SETTING_SCM_CONNECTION') ?: ''
+                        developerConnection = project.findProperty('POM_SETTING_SCM_DEV_CONNECTION') ?: ''
+                    }
+                    licenses {
+                        license {
+                            name = project.findProperty('POM_SETTING_LICENCE_NAME') ?: ''
+                            url = project.findProperty('POM_SETTING_LICENCE_URL') ?: ''
+                            distribution = project.findProperty('POM_SETTING_LICENCE_DIST') ?: ''
                         }
                     }
+                    developers {
+                        developer {
+                            id = project.findProperty('POM_SETTING_DEVELOPER_ID') ?: ''
+                            name = project.findProperty('POM_SETTING_DEVELOPER_NAME') ?: ''
+                        }
+                    }
+                }
+            }
+        }
+        repositories {
+            if (project.hasProperty('centralBundle') && project.property('centralBundle').toString().toBoolean()) {
+                maven {
+                    name = 'CentralBundle'
+                    url = layout.buildDirectory.dir('central-bundle')
                 }
             } else {
-                mavenDeployer {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    pom.artifactId = POM_SETTING_ARTIFACT_ID
-
-                    repository(url: sonatypeRepositoryURL) {
-                        authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
-                    }
-
-                    pom.project {
-                        name POM_SETTING_NAME
-                        packaging POM_SETTING_PACKAGING
-                        description POM_SETTING_DESCRIPTION
-                        url POM_SETTING_URL
-
-                        scm {
-                            url POM_SETTING_SCM_URL
-                            connection POM_SETTING_SCM_CONNECTION
-                            developerConnection POM_SETTING_SCM_DEV_CONNECTION
-                        }
-
-                        licenses {
-                            license {
-                                name POM_SETTING_LICENCE_NAME
-                                url POM_SETTING_LICENCE_URL
-                                distribution POM_SETTING_LICENCE_DIST
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id POM_SETTING_DEVELOPER_ID
-                                name POM_SETTING_DEVELOPER_NAME
-                            }
-                        }
+                maven {
+                    def releasesRepoUrl = uri('https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/')
+                    def snapshotsRepoUrl = uri('https://s01.oss.sonatype.org/content/repositories/snapshots/')
+                    url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
+                    credentials {
+                        username = getRepositoryUsername()
+                        password = getRepositoryPassword()
                     }
                 }
-
             }
         }
     }
 
     signing {
-        required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
-        sign configurations.archives
+        if (!isSkipSigning()) {
+            required {
+                isReleaseBuild() && (gradle.taskGraph.hasTask(":${project.name}:publish") || gradle.taskGraph.hasTask(":${project.name}:publishToMavenLocal"))
+            }
+            if (project.hasProperty('useGpgCmd') && project.property('useGpgCmd').toString().toBoolean()) {
+                useGpgCmd()
+            }
+            sign publishing.publications.maven
+        } else {
+            logger.lifecycle('Signing skipped (-PskipSigning=true)')
+        }
     }
 
-    task androidJavadocs(type: Javadoc) {
+    tasks.register('packageReleaseZip', Zip) {
+        group = 'distribution'
+        description = 'Packages release AAR, POM, sources, and javadoc into a zip archive.'
+        dependsOn 'assembleRelease', 'releaseSourcesJar', 'releaseJavadocJar', 'generatePomFileForMavenPublication'
+        from("$buildDir/outputs/aar") { include '*-release.aar' }
+        from("$buildDir/publications/maven") { include 'pom-default.xml'; into('maven') }
+        from("$buildDir/libs") { include '*-sources.jar', '*-javadoc.jar' }
+        def artifactId = project.findProperty('POM_SETTING_ARTIFACT_ID') ?: project.name
+        def versionName = project.version?.toString() ?: project.findProperty('VERSION_NAME') ?: 'unspecified'
+        archiveBaseName.set(artifactId)
+        archiveVersion.set(versionName)
+        destinationDirectory.set(file("$buildDir/releasePackage"))
     }
 
-    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-        classifier = 'javadoc'
+    tasks.register('generateCentralBundleChecksums') {
+        group = 'publishing'
+        description = 'Generates SHA-256 and SHA-512 checksums for Central bundle contents.'
+        doLast {
+            def bundleDir = layout.buildDirectory.dir('central-bundle').get().asFile
+            if (!bundleDir.exists()) {
+                logger.lifecycle("Central bundle directory not found: ${bundleDir}")
+                return
+            }
+            bundleDir.eachFileRecurse { file ->
+                if (file.isFile()) {
+                    ['SHA-256':'sha256', 'SHA-512':'sha512'].each { alg, ext ->
+                        def digest = java.security.MessageDigest.getInstance(alg)
+                        file.withInputStream { input ->
+                            byte[] buffer = new byte[8192]
+                            int read
+                            while ((read = input.read(buffer)) != -1) {
+                                digest.update(buffer, 0, read)
+                            }
+                        }
+                        def checksumFile = new File(file.parentFile, "${file.name}.${ext}")
+                        checksumFile.text = digest.digest().collect { String.format('%02x', it) }.join()
+                    }
+                }
+            }
+            logger.lifecycle('Checksums generated')
+        }
     }
 
-    task androidSourcesJar(type: Jar) {
-        classifier = 'sources'
-    }
-
-    artifacts {
-        archives androidSourcesJar
-        archives androidJavadocsJar
-    }
-
-    nexusStaging {
-        username getRepositoryUsername()
-        password getRepositoryPassword()
+    tasks.register('zipCentralBundle', Zip) {
+        group = 'publishing'
+        description = 'Zips the Central bundle directory for manual upload.'
+        dependsOn 'generateCentralBundleChecksums'
+        def artifactId = project.findProperty('POM_SETTING_ARTIFACT_ID') ?: project.name
+        def versionName = project.version?.toString() ?: project.findProperty('VERSION_NAME') ?: 'unspecified'
+        archiveFileName.set("central-bundle-${artifactId}-${versionName}.zip")
+        from(layout.buildDirectory.dir('central-bundle'))
+        destinationDirectory.set(file("$buildDir/distributions"))
     }
 }

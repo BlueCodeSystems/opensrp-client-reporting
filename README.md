@@ -1,6 +1,6 @@
 <!-- JITPACK BADGES:START -->
 [![JitPack Latest](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting)
-[![Build for latest tag (v0.2.0)](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/v0.2.0.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/v0.2.0)
+[![Build for latest tag (v0.3.0)](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/v0.3.0.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/v0.3.0)
 [![master-SNAPSHOT](https://jitpack.io/v/BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT.svg)](https://jitpack.io/#BlueCodeSystems/opensrp-client-reporting/master-SNAPSHOT)
 <!-- JITPACK BADGES:END -->
 
@@ -11,7 +11,7 @@ OpenSRP client library for producing reporting indicators, visualizations, and w
 - Toolchain: Gradle 8.7, Android Gradle Plugin 8.6.0, Java-only (no Kotlin DSL), JDK 17
 - Continuous integration: GitHub Actions workflows (badge refresh and JitPack warm-up)
 - Default branch: `master`
-- Latest tag: `v0.2.0`
+- Latest tag: `v0.3.0`
 
 ## Features
 - Render numeric, pie chart, and tabular reporting widgets backed by OpenSRP data.

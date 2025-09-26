@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2025-09-26
+### Features
+- Localize pagination status messaging across English, French, and Swahili resources for reporting UIs.
+
+### Documentation
+- Restore JitPack badge automation details and expand README coverage with overview, install, usage, and contributing guidance.
+
 ## [0.2.0] - 2025-09-25
 ### Bug Fixes
 - Adapt SnakeYAML constructor usage to the new LoaderOptions API to restore release builds.
@@ -13,4 +20,3 @@
 
 ### Documentation
 - Document the managed JitPack badge block in the README for clearer status tracking.
-

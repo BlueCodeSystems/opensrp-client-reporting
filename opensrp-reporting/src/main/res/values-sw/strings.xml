@@ -3,4 +3,5 @@
     <string name="title_activity_reports">Dashboard</string>
     <string name="some_reports_might_not_be_inaccurate">Baadhi ya ripoti zinaweza kuwa sio sahihi</string>
     <string name="currently_generating_in_app_reporting_indicators">Inatengeneza viashiria vya ripoti ya ndani ya programu</string>
+    <string name="current_page_of_total_pages">Ukurasa %1$d kati ya %2$d</string>
 </resources>

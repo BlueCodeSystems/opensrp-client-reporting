@@ -3,4 +3,5 @@
     <string name="title_activity_reports">Dashboard</string>
     <string name="some_reports_might_not_be_inaccurate">Some reports might be inaccurate</string>
     <string name="currently_generating_in_app_reporting_indicators">Currently generating in-app reporting indicators</string>
+    <string name="current_page_of_total_pages">Page %1$d of %2$d</string>
 </resources>
